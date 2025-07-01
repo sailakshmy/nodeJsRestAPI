@@ -1,0 +1,19 @@
+{
+  "name": "nodejsrestapi",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sailakshmy/nodeJsRestAPI.git"
+  },
+  "author": "Sai Lakshmy",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/sailakshmy/nodeJsRestAPI/issues"
+  },
+  "homepage": "https://github.com/sailakshmy/nodeJsRestAPI#readme",
+  "description": ""
+}
