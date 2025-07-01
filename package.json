@@ -15,5 +15,9 @@
     "url": "https://github.com/sailakshmy/nodeJsRestAPI/issues"
   },
   "homepage": "https://github.com/sailakshmy/nodeJsRestAPI#readme",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "express": "^5.1.0",
+    "nodemon": "^3.1.10"
+  }
 }
