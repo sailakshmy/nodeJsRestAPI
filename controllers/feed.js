@@ -4,6 +4,12 @@ exports.getPosts = (req, res, next) => {
       {
         title: "first post",
         content: "This is my first post",
+        imageUrl: "images/ExpenseTracker.png",
+        creator: {
+          name: "abc",
+        },
+        createdAt: new Date(),
+        _id: "123",
       },
     ],
   });
