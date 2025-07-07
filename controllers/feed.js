@@ -83,10 +83,15 @@ exports.getPost = (req, res, next) => {
 };
 
 const clearImage = (filePath) => {
+  console.log("filePath before", filePath);
   filePath = path.join(__dirname, "..", filePath);
-  fs.unlink(filePath, (err) =>
-    console.log("Error while clearing the image", err)
-  );
+  console.log("FilePath after", filePath);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.log("filePath", filePath);
+      console.log("Error while clearing the image", err);
+    }
+  });
 };
 
 exports.updatePost = (req, res, next) => {
@@ -129,10 +134,36 @@ exports.updatePost = (req, res, next) => {
       });
     })
     .catch((err) => {
-      if (!e.statusCode) {
-        e.statusCode = 500;
+      if (!err.statusCode) {
+        err.statusCode = 500;
       }
 
-      next(e);
+      next(err);
+    });
+};
+
+exports.deletePost = (req, res, next) => {
+  const { postId } = req.params;
+  Post.findById(postId)
+    .then((post) => {
+      if (!post) {
+        const error = new Error("Could not find the requested post!");
+        error.statusCode = 404;
+        throw error;
+      }
+
+      clearImage(post.imageUrl);
+      return Post.findByIdAndDelete(postId);
+    })
+    .then((result) => {
+      console.log("After deleting", result);
+      res.status(200).json({ message: "Successfully deleted the post!" });
+    })
+    .catch((err) => {
+      if (!err.statusCode) {
+        err.statusCode = 500;
+      }
+
+      next(err);
     });
 };
