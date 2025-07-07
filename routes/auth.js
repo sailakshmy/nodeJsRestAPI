@@ -28,4 +28,6 @@ authRoutes.put(
   authController.signup
 );
 
+authRoutes.post("/login", authController.login);
+
 module.exports = authRoutes;
