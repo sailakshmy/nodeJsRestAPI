@@ -4,9 +4,13 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const multer = require("multer");
+const { graphqlHTTP } = require("express-graphql");
 
 // const feedRoutes = require("./routes/feed");
 // const authRoutes = require("./routes/auth");
+
+const graphqlSchema = require("./graphql/schema");
+const graphqlResolver = require("./graphql/resolvers");
 
 const app = express();
 
@@ -32,6 +36,7 @@ const fileFilter = (req, file, cb) => {
     cb(null, false);
   }
 };
+
 app.use(
   multer({
     storage: fileStorage,
@@ -49,6 +54,14 @@ app.use((req, res, next) => {
 
 // app.use("/feed", feedRoutes);
 // app.use("/auth", authRoutes);
+
+app.use(
+  "/graphql",
+  graphqlHTTP({
+    schema: graphqlSchema,
+    rootValue: graphqlResolver,
+  })
+);
 
 app.use((error, req, res, next) => {
   console.log("Error", error);
