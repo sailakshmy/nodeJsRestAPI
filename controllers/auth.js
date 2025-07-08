@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
 const User = require("../models/user");
+const { JWT_SECRET_KEY } = require("../utils/constants");
 
 exports.signup = (req, res, next) => {
   const errors = validationResult(req);
@@ -57,7 +58,7 @@ exports.login = (req, res, next) => {
           email: loadedUser.email,
           userId: loadedUser._id.toString(),
         },
-        "arandomsecretkeythatcanbeusedtosignthisitcanliterallybeanyvalue",
+        JWT_SECRET_KEY,
         {
           expiresIn: "1h",
         }
