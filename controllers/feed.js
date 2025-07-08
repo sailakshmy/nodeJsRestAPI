@@ -31,7 +31,7 @@ exports.getPosts = async (req, res, next) => {
   }
 };
 
-exports.createPost = (req, res, next) => {
+exports.createPost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Validation failed!");
@@ -51,55 +51,49 @@ exports.createPost = (req, res, next) => {
     imageUrl,
     creator: req.userId,
   });
-  let creator;
-  post
-    .save()
-    .then((result) => {
-      console.log("Result while saving post to Db", result);
-      return User.findById(req.userId);
-    })
-    .then((user) => {
-      creator = user;
-      user.posts.push(post);
-      return user.save();
-    })
-    .then(() => {
-      res.status(201).json({
-        message: "Post created successfully!",
-        post,
-        creator: {
-          _id: creator._id,
-          name: creator.name,
-        },
-      });
-    })
-    .catch((e) => {
-      if (!e.statusCode) {
-        e.statusCode = 500;
-      }
 
-      next(e);
+  try {
+    await post.save();
+
+    const user = await User.findById(req.userId);
+
+    user.posts.push(post);
+    await user.save();
+
+    res.status(201).json({
+      message: "Post created successfully!",
+      post,
+      creator: {
+        _id: user._id,
+        name: user.name,
+      },
     });
+  } catch (e) {
+    if (!e.statusCode) {
+      e.statusCode = 500;
+    }
+
+    next(e);
+  }
 };
 
-exports.getPost = (req, res, next) => {
+exports.getPost = async (req, res, next) => {
   const { postId } = req.params;
-  Post.findById(postId)
-    .then((post) => {
-      if (!post) {
-        const error = new Error("Could not find the requested post!");
-        error.statusCode = 404;
-        throw error;
-      }
-      res.status(200).json({ message: "Fetched the requested post", post });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+  try {
+    const post = await Post.findById(postId);
+    if (!post) {
+      const error = new Error("Could not find the requested post!");
+      error.statusCode = 404;
+      throw error;
+    }
+    res.status(200).json({ message: "Fetched the requested post", post });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
 
-      next(err);
-    });
+    next(err);
+  }
 };
 
 const clearImage = (filePath) => {
@@ -114,7 +108,7 @@ const clearImage = (filePath) => {
   });
 };
 
-exports.updatePost = (req, res, next) => {
+exports.updatePost = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     const error = new Error("Validation failed!");
@@ -132,75 +126,70 @@ exports.updatePost = (req, res, next) => {
     error.statusCode = 422;
     throw error;
   }
-  Post.findById(postId)
-    .then((post) => {
-      if (!post) {
-        const error = new Error("Could not find the requested post!");
-        error.statusCode = 404;
-        throw error;
-      }
+  try {
+    const post = await Post.findById(postId);
 
-      if (post.creator.toString() !== req.userId) {
-        const err = new Error("Not authorised!");
-        err.statusCode = 403;
-        throw err;
-      }
-      if (imageUrl !== post.imageUrl) {
-        clearImage(post.imageUrl);
-      }
-      post.title = title;
-      post.content = content;
-      post.imageUrl = imageUrl;
-      return post.save();
-    })
-    .then((result) => {
-      res.status(200).json({
-        message: "Your post has been updated successfully!",
-        post: result,
-      });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+    if (!post) {
+      const error = new Error("Could not find the requested post!");
+      error.statusCode = 404;
+      throw error;
+    }
 
-      next(err);
+    if (post.creator.toString() !== req.userId) {
+      const err = new Error("Not authorised!");
+      err.statusCode = 403;
+      throw err;
+    }
+    if (imageUrl !== post.imageUrl) {
+      clearImage(post.imageUrl);
+    }
+    post.title = title;
+    post.content = content;
+    post.imageUrl = imageUrl;
+    const savedpost = await post.save();
+
+    res.status(200).json({
+      message: "Your post has been updated successfully!",
+      post: savedpost,
     });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+
+    next(err);
+  }
 };
 
-exports.deletePost = (req, res, next) => {
+exports.deletePost = async (req, res, next) => {
   const { postId } = req.params;
-  Post.findById(postId)
-    .then((post) => {
-      if (!post) {
-        const error = new Error("Could not find the requested post!");
-        error.statusCode = 404;
-        throw error;
-      }
-      if (post.creator.toString() !== req.userId) {
-        const err = new Error("Not authorised!");
-        err.statusCode = 403;
-        throw err;
-      }
-      clearImage(post.imageUrl);
-      return Post.findByIdAndDelete(postId);
-    })
-    .then(() => {
-      return User.findById(req.userId);
-    })
-    .then((user) => {
-      user.posts.pull(postId);
-      return user.save();
-    })
-    .then((result) => {
-      console.log("After deleting", result);
-      res.status(200).json({ message: "Successfully deleted the post!" });
-    })
-    .catch((err) => {
-      if (!err.statusCode) {
-        err.statusCode = 500;
-      }
+  try {
+    const post = await Post.findById(postId);
 
-      next(err);
-    });
+    if (!post) {
+      const error = new Error("Could not find the requested post!");
+      error.statusCode = 404;
+      throw error;
+    }
+    if (post.creator.toString() !== req.userId) {
+      const err = new Error("Not authorised!");
+      err.statusCode = 403;
+      throw err;
+    }
+    clearImage(post.imageUrl);
+    await Post.findByIdAndDelete(postId);
+
+    const user = await User.findById(req.userId);
+
+    user.posts.pull(postId);
+    await user.save();
+
+    res.status(200).json({ message: "Successfully deleted the post!" });
+  } catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+
+    next(err);
+  }
 };
