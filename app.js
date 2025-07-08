@@ -63,6 +63,10 @@ const uri =
 mongoose
   .connect(uri)
   .then(() => {
-    app.listen(8080);
+    const noderserver = app.listen(8080);
+    const io = require("socket.io")(noderserver);
+    io.on("connection", (socket) => {
+      console.log("Client connected", socket);
+    });
   })
   .catch((e) => console.log("error while connecting to mongoose", e));
