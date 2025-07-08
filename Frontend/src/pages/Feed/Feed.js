@@ -40,7 +40,12 @@ class Feed extends Component {
       .catch(this.catchError);
 
     this.loadPosts();
-    openSocket(`${BACKEND_URL}`);
+    const socket = openSocket(`${BACKEND_URL}`);
+    socket.on("posts", (data) => {
+      if (data.action === "create") {
+        this.addPost(data.post);
+      }
+    });
   }
 
   addPost = (post) => {
