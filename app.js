@@ -5,8 +5,8 @@ const bodyParser = require("body-parser");
 const mongoose = require("mongoose");
 const multer = require("multer");
 
-const feedRoutes = require("./routes/feed");
-const authRoutes = require("./routes/auth");
+// const feedRoutes = require("./routes/feed");
+// const authRoutes = require("./routes/auth");
 
 const app = express();
 
@@ -47,8 +47,8 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use("/feed", feedRoutes);
-app.use("/auth", authRoutes);
+// app.use("/feed", feedRoutes);
+// app.use("/auth", authRoutes);
 
 app.use((error, req, res, next) => {
   console.log("Error", error);
@@ -63,10 +63,11 @@ const uri =
 mongoose
   .connect(uri)
   .then(() => {
-    const noderserver = app.listen(8080);
-    const io = require("./socket").init(noderserver);
-    io.on("connection", (socket) => {
-      console.log("Client connected", socket);
-    });
+    app.listen(8080);
+    // const noderserver = app.listen(8080);
+    // const io = require("./socket").init(noderserver);
+    // io.on("connection", (socket) => {
+    //   console.log("Client connected", socket);
+    // });
   })
   .catch((e) => console.log("error while connecting to mongoose", e));
