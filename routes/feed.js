@@ -9,6 +9,7 @@ const router = express.Router();
 router.get("/posts", isAuthMiddleware, feedController.getPosts);
 router.post(
   "/post",
+  isAuthMiddleware,
   [
     body("title").trim().isLength({ min: 5 }),
     body("content").trim().isLength({ min: 5 }),
@@ -16,9 +17,10 @@ router.post(
   feedController.createPost
 );
 
-router.get("/post/:postId", feedController.getPost);
+router.get("/post/:postId", isAuthMiddleware, feedController.getPost);
 router.put(
   "/post/:postId",
+  isAuthMiddleware,
   [
     body("title").trim().isLength({ min: 5 }),
     body("content").trim().isLength({ min: 5 }),
@@ -26,6 +28,6 @@ router.put(
   feedController.updatePost
 );
 
-router.delete("/post/:postId", feedController.deletePost);
+router.delete("/post/:postId", isAuthMiddleware, feedController.deletePost);
 
 module.exports = router;
