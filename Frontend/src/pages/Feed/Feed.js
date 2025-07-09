@@ -96,26 +96,74 @@ class Feed extends Component {
       page--;
       this.setState({ postPage: page });
     }
-    fetch(`${BACKEND_URL}/feed/posts?page=${page}`, {
+    // fetch(`${BACKEND_URL}/feed/posts?page=${page}`, {
+    //   headers: {
+    //     Authorization: `Bearer ${this.props.token}`,
+    //   },
+    // })
+    //   .then((res) => {
+    //     if (res.status !== 200) {
+    //       throw new Error("Failed to fetch posts.");
+    //     }
+    //     return res.json();
+    //   })
+    //   .then((resData) => {
+    //     this.setState({
+    //       posts: resData.posts.map((post) => {
+    //         return {
+    //           ...post,
+    //           imagePath: post.imageUrl,
+    //         };
+    //       }),
+    //       totalPosts: resData.totalItems,
+    //       postsLoading: false,
+    //     });
+    //   })
+    const graphqlQuery = {
+      query: `
+      {
+        posts{
+          posts{
+            _id
+            title
+            content
+            creator{
+              name
+            }
+            createdAt
+          }
+          totalPosts
+        }
+      }
+    `,
+    };
+
+    fetch(`${BACKEND_URL}/graphql`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${this.props.token}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(graphqlQuery),
     })
       .then((res) => {
-        if (res.status !== 200) {
-          throw new Error("Failed to fetch posts.");
-        }
+        // if (res.status !== 200) {
+        //   throw new Error("Failed to fetch posts.");
+        // }
         return res.json();
       })
       .then((resData) => {
+        if (resData.errors) {
+          throw new Error("Failed to fetch posts.");
+        }
         this.setState({
-          posts: resData.posts.map((post) => {
+          posts: resData.data.posts.posts.map((post) => {
             return {
               ...post,
               imagePath: post.imageUrl,
             };
           }),
-          totalPosts: resData.totalItems,
+          totalPosts: resData.data.posts.totalPosts,
           postsLoading: false,
         });
       })
@@ -256,11 +304,22 @@ class Feed extends Component {
           _id: resData.data.createPost._id,
           title: resData.data.createPost.title,
           content: resData.data.createPost.content,
-          creator: resData.data.createPost.creator.name,
+          creator: resData.data.createPost.creator,
           createdAt: resData.data.createPost.createdAt,
         };
         this.setState((prevState) => {
+          let updatedPosts = [...prevState.posts];
+          if (prevState.editPost) {
+            const postIndex = prevState.posts.findIndex(
+              (p) => p._id === prevState.editPost._id
+            );
+            updatedPosts[postIndex] = post;
+          } else {
+            updatedPosts.unshift(post);
+          }
+          console.log("updated posts", updatedPosts);
           return {
+            posts: updatedPosts,
             isEditing: false,
             editPost: null,
             editLoading: false,
