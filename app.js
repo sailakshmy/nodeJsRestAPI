@@ -12,6 +12,8 @@ const { graphqlHTTP } = require("express-graphql");
 const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
 
+const isAuthMiddleware = require("./middleware/is-auth");
+
 const app = express();
 
 app.use(bodyParser.json());
@@ -60,6 +62,8 @@ app.use((req, res, next) => {
 
 // app.use("/feed", feedRoutes);
 // app.use("/auth", authRoutes);
+
+app.use(isAuthMiddleware);
 
 app.use(
   "/graphql",
