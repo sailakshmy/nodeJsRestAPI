@@ -13,7 +13,6 @@ import LoginPage from "./pages/Auth/Login";
 import SignupPage from "./pages/Auth/Signup";
 import "./App.css";
 import { BACKEND_URL } from "./util/constants";
-import auth from "./pages/Auth/Auth";
 
 class App extends Component {
   state = {
@@ -83,14 +82,18 @@ class App extends Component {
     //   })
     const graphqlQuery = {
       query: `
-        {
-          login(email:"${authData.email}", password:"${authData.password}") {
+        query Login($email: String!,$password: String! ){
+          login(email:$email, password:$password) {
             token
             userId
           }
         }
       
       `,
+      variables: {
+        email: authData.email,
+        password: authData.password,
+      },
     };
     fetch(`${BACKEND_URL}/graphql`, {
       method: "POST",
@@ -162,13 +165,18 @@ class App extends Component {
     // })
     const graohqlQuery = {
       query: `
-        mutation {
-          createUser(userInput:{email:"${authData.signupForm.email.value}", name: "${authData.signupForm.name.value}", password:"${authData.signupForm.password.value}"}){
+        mutation SignUp($email: String!, $name:String!, $password:String!){
+          createUser(userInput:{email:$email, name: $name, password:$password}){
             _id
             email
           }
         }
       `,
+      variables: {
+        email: authData.signupForm.email.value,
+        name: authData.signupForm.name.value,
+        password: authData.signupForm.password.value,
+      },
     };
     fetch(`${BACKEND_URL}/graphql`, {
       method: "POST",

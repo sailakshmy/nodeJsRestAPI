@@ -38,8 +38,8 @@ class SinglePost extends Component {
 
     const graphqlQuery = {
       query: `
-        {
-          post(id:"${postId}"){
+        query ViewPost($postId:ID!){
+          post(id:$postId){
             _id
             title
             creator{
@@ -51,6 +51,9 @@ class SinglePost extends Component {
           }
         }
       `,
+      variables: {
+        postId,
+      },
     };
     fetch(`${BACKEND_URL}/graphql`, {
       method: "POST",
