@@ -1,4 +1,5 @@
 const path = require("path");
+const fs = require("fs");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -13,7 +14,6 @@ const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
 
 const isAuthMiddleware = require("./middleware/is-auth");
-const { clearImage } = require("./utils/helpers");
 
 const app = express();
 
@@ -66,6 +66,18 @@ app.use((req, res, next) => {
 
 app.use(isAuthMiddleware);
 
+const clearImage = (filePath) => {
+  console.log("filePath before", filePath);
+  filePath = path.join(__dirname, "..", filePath);
+  console.log("FilePath after", filePath);
+  fs.unlink(filePath, (err) => {
+    if (err) {
+      console.log("filePath", filePath);
+      console.log("Error while clearing the image", err);
+    }
+  });
+};
+
 app.put("/post-image", (req, res, next) => {
   if (!req.isAuth) {
     throw new Error("Not Authenticated");
@@ -105,7 +117,8 @@ app.use(
 
 app.use((error, req, res, next) => {
   console.log("Error", error);
-  const { statusCode, message } = error;
+  const statusCode = error.statusCode || 500;
+  const { message } = error;
   const data = error?.data;
   res.status(statusCode).json({ message, data });
 });
