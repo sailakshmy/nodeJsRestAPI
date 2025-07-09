@@ -355,7 +355,10 @@ class Feed extends Component {
             );
             updatedPosts[postIndex] = post;
           } else {
-            updatedPosts.pop();
+            if (prevState.posts.length >= 2) {
+              updatedPosts.pop();
+            }
+
             updatedPosts.unshift(post);
           }
           console.log("updated posts", updatedPosts);
