@@ -139,6 +139,7 @@ module.exports = {
       totalPosts,
     };
   },
+
   post: async function ({ id }, req) {
     if (!req.isAuth) {
       const err = new Error("Not Authenticated!");
@@ -157,6 +158,54 @@ module.exports = {
       _id: post._id.toString(),
       createdAt: post.createdAt.toISOString(),
       updatedAt: post.updatedAt.toISOString(),
+    };
+  },
+
+  updatePost: async function ({ id, postInput }, req) {
+    if (!req.isAuth) {
+      const err = new Error("Not Authenticated!");
+      err.code = 401;
+      throw err;
+    }
+    const post = await Post.findById(id).populate("creator");
+    if (!post) {
+      const err = new Error("No post found!");
+      err.code = 404;
+      throw err;
+    }
+    if (post.creator._id.toString() !== req.userId.toString()) {
+      const err = new Error("Not authorised!");
+      err.code = 403;
+      throw err;
+    }
+    const { title, content, imageUrl } = postInput;
+    const errors = [];
+    if (validator.isEmpty(title) || !validator.isLength(title, { min: 5 })) {
+      errors.push({ message: "Title is invalid!" });
+    }
+    if (
+      validator.isEmpty(content) ||
+      !validator.isLength(content, { min: 5 })
+    ) {
+      errors.push({ message: "Content is invalid!" });
+    }
+    if (errors.length > 0) {
+      const error = new Error("Invalid input!");
+      error.data = errors;
+      error.code = 422;
+      throw error;
+    }
+    post.title = title;
+    post.content = content;
+    if (imageUrl !== "undefined") {
+      post.imageUrl = imageUrl;
+    }
+    const updatedPost = await post.save();
+    return {
+      ...updatedPost._doc,
+      _id: updatedPost._id.toString(),
+      createdAt: updatedPost.createdAt.toISOString(),
+      updatedAt: updatedPost.updatedAt.toISOString(),
     };
   },
 };
