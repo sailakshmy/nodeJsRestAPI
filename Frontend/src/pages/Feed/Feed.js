@@ -384,20 +384,44 @@ class Feed extends Component {
 
   deletePostHandler = (postId) => {
     this.setState({ postsLoading: true });
-    fetch(`${BACKEND_URL}/feed/post/${postId}`, {
-      method: "DELETE",
+    // fetch(`${BACKEND_URL}/feed/post/${postId}`, {
+    //   method: "DELETE",
+    //   headers: {
+    //     Authorization: `Bearer ${this.props.token}`,
+    //   },
+    // })
+    //   .then((res) => {
+    //     if (res.status !== 200 && res.status !== 201) {
+    //       throw new Error("Deleting a post failed!");
+    //     }
+    //     return res.json();
+    //   })
+    const graphqlQuery = {
+      query: `
+        mutation{
+          deletePost(id:"${postId}")
+        }
+      `,
+    };
+    fetch(`${BACKEND_URL}/graphql`, {
+      method: "POST",
       headers: {
         Authorization: `Bearer ${this.props.token}`,
+        "Content-Type": "application/json",
       },
+      body: JSON.stringify(graphqlQuery),
     })
       .then((res) => {
-        if (res.status !== 200 && res.status !== 201) {
-          throw new Error("Deleting a post failed!");
-        }
+        // if (res.status !== 200 && res.status !== 201) {
+        //   throw new Error("Deleting a post failed!");
+        // }
         return res.json();
       })
       .then((resData) => {
         console.log(resData);
+        if (resData.errors) {
+          throw new Error("Deleting a post failed!");
+        }
         this.loadPosts();
       })
       .catch((err) => {

@@ -1,5 +1,4 @@
 const path = require("path");
-const fs = require("fs");
 
 const express = require("express");
 const bodyParser = require("body-parser");
@@ -14,6 +13,7 @@ const graphqlSchema = require("./graphql/schema");
 const graphqlResolver = require("./graphql/resolvers");
 
 const isAuthMiddleware = require("./middleware/is-auth");
+const { clearImage } = require("./utils/helper");
 
 const app = express();
 
@@ -65,18 +65,6 @@ app.use((req, res, next) => {
 // app.use("/auth", authRoutes);
 
 app.use(isAuthMiddleware);
-
-const clearImage = (filePath) => {
-  console.log("filePath before", filePath);
-  filePath = path.join(__dirname, "..", filePath);
-  console.log("FilePath after", filePath);
-  fs.unlink(filePath, (err) => {
-    if (err) {
-      console.log("filePath", filePath);
-      console.log("Error while clearing the image", err);
-    }
-  });
-};
 
 app.put("/post-image", (req, res, next) => {
   if (!req.isAuth) {
